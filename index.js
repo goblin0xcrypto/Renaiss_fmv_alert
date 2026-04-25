@@ -147,13 +147,14 @@ async function check() {
     const fmvChange = current.fmv - prev.fmv;
     const fmvChangePercent = ((fmvChange / prev.fmv) * 100).toFixed(1);
 
-    // Check list price vs new FMV gap
+    // Only alert when list price is below FMV (underpriced opportunity)
     if (current.askPrice === null) continue;
-    const gap = Math.abs(current.askPrice - current.fmv);
+    if (current.askPrice >= current.fmv) continue;
+
+    const gap = current.fmv - current.askPrice;
     const gapPercent = (gap / current.fmv) * 100;
 
     if (gapPercent >= THRESHOLD) {
-      const isOverpriced = current.askPrice > current.fmv;
       alerts.push({
         tokenId,
         ...current,
@@ -161,7 +162,6 @@ async function check() {
         fmvChange,
         fmvChangePercent,
         gapPercent: gapPercent.toFixed(1),
-        isOverpriced,
       });
     }
   }
@@ -171,10 +171,11 @@ async function check() {
 
   if (alerts.length > 0) {
     const embeds = alerts.map((a) => ({
-      title: `${a.isOverpriced ? "Overpriced" : "Underpriced"} Alert`,
-      color: a.isOverpriced ? 0xff4444 : 0x44ff44,
+      title: "Underpriced Alert",
+      url: `https://www.renaiss.xyz/card/${a.tokenId}`,
+      color: 0x44ff44,
       fields: [
-        { name: "Card", value: a.name, inline: false },
+        { name: "Card", value: `[${a.name}](https://www.renaiss.xyz/card/${a.tokenId})`, inline: false },
         { name: "Owner", value: a.owner, inline: true },
         { name: "Grade", value: `${a.gradingCompany} ${a.grade}`, inline: true },
         { name: "Year", value: String(a.year), inline: true },

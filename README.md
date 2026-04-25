@@ -1,15 +1,13 @@
 # Renaiss FMV Alert System
 
-監控 [Renaiss](https://renaiss.io) 市場上所有掛單卡牌的 FMV（Fair Market Value）變動，當 FMV 更新後與掛單價差距達到設定閾值時，自動發送通知到 Discord。
+監控 [Renaiss](https://www.renaiss.xyz) 市場上所有掛單卡牌的 FMV（Fair Market Value）變動，當 FMV 上漲後掛單價低於新 FMV 超過設定閾值時，自動發送 Discord 通知（撿便宜機會）。
 
 ## 功能
 
 - 自動抓取所有掛單卡牌的 FMV 並儲存快照
 - 定期偵測 FMV 是否發生變動
-- 若 FMV 變動後，掛單價與新 FMV 差距 >= 20%，則發送 Discord 警報
-- 警報分為兩種：
-  - **Overpriced（紅色）**：掛單價高於 FMV 超過閾值
-  - **Underpriced（綠色）**：掛單價低於 FMV 超過閾值（撿便宜機會）
+- 若 FMV 變動後，掛單價低於新 FMV 且差距 >= 20%，發送 **Underpriced Alert**（綠色）
+- 通知內附卡牌連結，可直接跳轉至 [renaiss.xyz](https://www.renaiss.xyz) 卡片頁面
 
 ## 快速開始
 
@@ -73,7 +71,9 @@ npm start
               找出 FMV 有變的卡
                   │
                   ▼
-              計算 |掛單價 - 新FMV| / 新FMV
+              掛單價 >= 新FMV？ → 略過（非便宜貨）
+              掛單價 < 新FMV：
+              計算 (新FMV - 掛單價) / 新FMV
                   ├─ < 門檻 → 略過
                   └─ >= 門檻 → 加入警報清單
                                │
@@ -93,7 +93,7 @@ npm start
 
 | 欄位 | 說明 |
 |---|---|
-| Card | 卡牌完整名稱 |
+| Card | 卡牌完整名稱（含卡片頁面連結） |
 | Owner | 目前擁有者 |
 | Grade | 評級公司與等級（如 PSA 10） |
 | Year | 發行年份 |
@@ -108,7 +108,9 @@ npm start
 ## 資料說明
 
 - 快照儲存於 `data/fmv-snapshot.json`
+- FMV（`fmvPriceInUSD`）為美分格式，程式自動除以 100 轉換為 USD
 - 掛單價（`askPriceInUSDT`）為鏈上 18 位小數格式，程式自動轉換為 USDT 金額
+- 卡片連結格式：`https://www.renaiss.xyz/card/{tokenId}`
 - 每次分頁抓取最多 100 張，頁間間隔 1 秒避免請求過快
 
 ---
